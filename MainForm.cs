@@ -8,30 +8,64 @@ using Moq;
 
 namespace MIAM
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, IRepasView
     {
+        private readonly SproutClass _sproutClass;
+
         public MainForm()
         {
             InitializeComponent();
             dataGridView1.AutoGenerateColumns = false;
+            _sproutClass = new SproutClass(this);
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
+            _sproutClass.RafraichirListeRepas();
+        }
+
+        public void EffacerRepas()
+        {
+            dataGridView1.DataSource = new List<Repas>();
+        }
+
+        public void AfficherRepas(List<Repas> repas)
+        {
+            dataGridView1.DataSource = repas;
+        }
+    }
+
+    public interface IRepasView
+    {
+        void EffacerRepas();
+        void AfficherRepas(List<Repas> repas);
+    }
+
+    public class SproutClass
+    {
+        private readonly IRepasView _mainForm;
+
+        public SproutClass(IRepasView mainForm)
+        {
+            _mainForm = mainForm;
+        }
+
+        public void RafraichirListeRepas()
+        {
             using (MiamDbContext context = new MiamDbContext())
             {
-                int nb = ((int)DayOfWeek.Friday -
-                          (int)DateTime.Today.DayOfWeek + 7) % 7;
+                int nb = ((int) DayOfWeek.Friday -
+                          (int) DateTime.Today.DayOfWeek + 7) % 7;
                 DateTime dateTime2 = DateTime.Today.AddDays(nb);
                 List<Repas> repas = context.Repas.Where(x => DateTime.Today <= x.Date
                                                              && x.Date <= dateTime2).ToList();
                 if (!repas.Any())
                 {
-                    dataGridView1.DataSource = new List<Repas>();
+                    _mainForm.EffacerRepas();
                     MessageBox.Show("Pas de repas!");
                 }
                 else
-                    dataGridView1.DataSource = repas;
+                    _mainForm.AfficherRepas(repas);
             }
         }
     }
@@ -39,6 +73,8 @@ namespace MIAM
     [TestClass]
     public class DojoTest
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void GIVEN_UnRepasChaqueJourEtOnEstJeudi_WHEN_AfficherRepas_THEN_DevraitAfficherRepasDuJeudiEtDuVendredi()
         {
@@ -55,11 +91,14 @@ namespace MIAM
             };
 
             DateTime aujourdhuiCEstJeudi = new DateTime(2018, 10, 25);
+            MockRepasView mockRepasView = new MockRepasView(TestContext);
+            SproutClass sproutClass = new SproutClass(mockRepasView);
 
             // Act
-            List<Repas> repasAffiches = null;
+            sproutClass.RafraichirListeRepas();
 
             // Assert
+            List<Repas> repasAffiches = mockRepasView.DerniersRepasAffiches;
             List<Repas> repasAttendus = new List<Repas>()
             {
                 new Repas {Date = new DateTime(2018,10,25),Plat = "Repas du jeudi"},
@@ -68,5 +107,31 @@ namespace MIAM
 
             repasAffiches.Should().BeEquivalentTo(repasAttendus);
         }
+    }
+
+    public class MockRepasView : IRepasView
+    {
+        private readonly TestContext _testContext;
+
+        public MockRepasView(TestContext testContext)
+        {
+            _testContext = testContext;
+        }
+
+        public void EffacerRepas()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AfficherRepas(List<Repas> repas)
+        {
+            foreach (Repas unRepas in repas)
+            {
+                _testContext.WriteLine("Repas Affiche :"+ unRepas.Plat);
+            }
+            DerniersRepasAffiches = repas.ToList();
+        }
+
+        public List<Repas> DerniersRepasAffiches { get; set; }
     }
 }
