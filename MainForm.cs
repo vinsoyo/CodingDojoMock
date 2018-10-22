@@ -50,8 +50,8 @@ namespace MIAM
                 new Repas {Date = new DateTime(2018,10,24),Plat = "Repas du mercredi"},
                 new Repas {Date = new DateTime(2018,10,25),Plat = "Repas du jeudi"},
                 new Repas {Date = new DateTime(2018,10,26),Plat = "Repas du vendredi"},
-                new Repas {Date = new DateTime(2018,10,26),Plat = "Repas du samedi"},
-                new Repas {Date = new DateTime(2018,10,26),Plat = "Repas du dimanche"},
+                new Repas {Date = new DateTime(2018,10,27),Plat = "Repas du samedi"},
+                new Repas {Date = new DateTime(2018,10,28),Plat = "Repas du dimanche"},
             };
 
             DateTime aujourdhuiCEstJeudi = new DateTime(2018, 10, 25);
