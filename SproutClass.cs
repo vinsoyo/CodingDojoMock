@@ -5,15 +5,38 @@ using System.Windows.Forms;
 
 namespace MIAM
 {
+    public interface IUIFeedBack
+    {
+        void AfficherMessage(string messageAAfficher);
+    }
+
+    public class UIFeedBack : IUIFeedBack
+    {
+        public UIFeedBack()
+        {
+        }
+
+        public void AfficherMessage(string messageAAfficher)
+        {
+            MessageBox.Show(messageAAfficher);
+        }
+    }
+
     public class SproutClass
     {
         private readonly IRepasView _mainForm;
         private readonly ContextFactory _contextFactory;
+        private readonly IUIFeedBack _uiFeedback;
 
-        public SproutClass(IRepasView mainForm, ContextFactory contextFactory)
+        public SproutClass(IRepasView mainForm, ContextFactory contextFactory, IUIFeedBack uiFeedBack)
         {
             _mainForm = mainForm;
             _contextFactory = contextFactory;
+            _uiFeedback = uiFeedBack;
+        }
+
+        public SproutClass(IRepasView mainForm, ContextFactory contextFactory) : this(mainForm, contextFactory, new UIFeedBack())
+        {
         }
 
         public void RafraichirListeRepas()
@@ -33,7 +56,7 @@ namespace MIAM
                 if (!repas.Any())
                 {
                     _mainForm.EffacerRepas();
-                    MessageBox.Show("Pas de repas!");
+                    _uiFeedback.AfficherMessage("Pas de repas!");
                 }
                 else
                     _mainForm.AfficherRepas(repas);

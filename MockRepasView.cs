@@ -16,7 +16,7 @@ namespace MIAM
 
         public void EffacerRepas()
         {
-            throw new NotImplementedException();
+            _testContext.WriteLine("Les repas ont été effacés");
         }
 
         public void AfficherRepas(List<Repas> repas)

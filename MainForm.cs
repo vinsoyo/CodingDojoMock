@@ -13,7 +13,7 @@ namespace MIAM
         {
             InitializeComponent();
             dataGridView1.AutoGenerateColumns = false;
-            _sproutClass = new SproutClass(this, new ContextFactory());
+            _sproutClass = new SproutClass(this, new ContextFactory(), new UIFeedBack());
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
