@@ -16,7 +16,7 @@ namespace MIAM
         {
             InitializeComponent();
             dataGridView1.AutoGenerateColumns = false;
-            _sproutClass = new SproutClass(this);
+            _sproutClass = new SproutClass(this, new ContextFactory());
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -41,18 +41,32 @@ namespace MIAM
         void AfficherRepas(List<Repas> repas);
     }
 
+    public class ContextFactory
+    {
+        public ContextFactory()
+        {
+        }
+
+        public virtual IMiamDbContext CreateContext()
+        {
+            return new MiamDbContext();
+        }
+    }
+
     public class SproutClass
     {
         private readonly IRepasView _mainForm;
+        private readonly ContextFactory _contextFactory;
 
-        public SproutClass(IRepasView mainForm)
+        public SproutClass(IRepasView mainForm, ContextFactory contextFactory)
         {
             _mainForm = mainForm;
+            _contextFactory = contextFactory;
         }
 
         public void RafraichirListeRepas()
         {
-            using (MiamDbContext context = new MiamDbContext())
+            using (IMiamDbContext context = _contextFactory.CreateContext())
             {
                 int nb = ((int) DayOfWeek.Friday -
                           (int) DateTime.Today.DayOfWeek + 7) % 7;
@@ -92,7 +106,7 @@ namespace MIAM
 
             DateTime aujourdhuiCEstJeudi = new DateTime(2018, 10, 25);
             MockRepasView mockRepasView = new MockRepasView(TestContext);
-            SproutClass sproutClass = new SproutClass(mockRepasView);
+            SproutClass sproutClass = new SproutClass(mockRepasView, new InMemoryDbContext(unRepasPourChaqueJourDeLaSemaine));
 
             // Act
             sproutClass.RafraichirListeRepas();
