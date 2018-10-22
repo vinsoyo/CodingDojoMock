@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace MIAM
@@ -33,119 +30,5 @@ namespace MIAM
         {
             dataGridView1.DataSource = repas;
         }
-    }
-
-    public interface IRepasView
-    {
-        void EffacerRepas();
-        void AfficherRepas(List<Repas> repas);
-    }
-
-    public class ContextFactory
-    {
-        public ContextFactory()
-        {
-        }
-
-        public virtual IMiamDbContext CreateContext()
-        {
-            return new MiamDbContext();
-        }
-    }
-
-    public class SproutClass
-    {
-        private readonly IRepasView _mainForm;
-        private readonly ContextFactory _contextFactory;
-
-        public SproutClass(IRepasView mainForm, ContextFactory contextFactory)
-        {
-            _mainForm = mainForm;
-            _contextFactory = contextFactory;
-        }
-
-        public void RafraichirListeRepas()
-        {
-            using (IMiamDbContext context = _contextFactory.CreateContext())
-            {
-                int nb = ((int) DayOfWeek.Friday -
-                          (int) DateTime.Today.DayOfWeek + 7) % 7;
-                DateTime dateTime2 = DateTime.Today.AddDays(nb);
-                List<Repas> repas = context.Repas.Where(x => DateTime.Today <= x.Date
-                                                             && x.Date <= dateTime2).ToList();
-                if (!repas.Any())
-                {
-                    _mainForm.EffacerRepas();
-                    MessageBox.Show("Pas de repas!");
-                }
-                else
-                    _mainForm.AfficherRepas(repas);
-            }
-        }
-    }
-
-    [TestClass]
-    public class DojoTest
-    {
-        public TestContext TestContext { get; set; }
-
-        [TestMethod]
-        public void GIVEN_UnRepasChaqueJourEtOnEstJeudi_WHEN_AfficherRepas_THEN_DevraitAfficherRepasDuJeudiEtDuVendredi()
-        {
-            // Arrange
-            List<Repas> unRepasPourChaqueJourDeLaSemaine = new List<Repas>
-            {
-                new Repas {Date = new DateTime(2018,10,22),Plat = "Repas du lundi"},
-                new Repas {Date = new DateTime(2018,10,23),Plat = "Repas du mardi"},
-                new Repas {Date = new DateTime(2018,10,24),Plat = "Repas du mercredi"},
-                new Repas {Date = new DateTime(2018,10,25),Plat = "Repas du jeudi"},
-                new Repas {Date = new DateTime(2018,10,26),Plat = "Repas du vendredi"},
-                new Repas {Date = new DateTime(2018,10,27),Plat = "Repas du samedi"},
-                new Repas {Date = new DateTime(2018,10,28),Plat = "Repas du dimanche"},
-            };
-
-            DateTime aujourdhuiCEstJeudi = new DateTime(2018, 10, 25);
-            MockRepasView mockRepasView = new MockRepasView(TestContext);
-            SproutClass sproutClass = new SproutClass(mockRepasView, new InMemoryDbContext(unRepasPourChaqueJourDeLaSemaine));
-
-            // Act
-            sproutClass.RafraichirListeRepas();
-
-            // Assert
-            List<Repas> repasAffiches = mockRepasView.DerniersRepasAffiches;
-            List<Repas> repasAttendus = new List<Repas>()
-            {
-                new Repas {Date = new DateTime(2018,10,25),Plat = "Repas du jeudi"},
-                new Repas {Date = new DateTime(2018,10,26),Plat = "Repas du vendredi"},
-            };
-
-            repasAffiches.Should().BeEquivalentTo(repasAttendus);
-        }
-    }
-
-    public class MockRepasView : IRepasView
-    {
-        private readonly TestContext _testContext;
-
-        public MockRepasView(TestContext testContext)
-        {
-            _testContext = testContext;
-        }
-
-        public void EffacerRepas()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AfficherRepas(List<Repas> repas)
-        {
-            foreach (Repas unRepas in repas)
-            {
-                _testContext.WriteLine("Repas Affiche :"+ unRepas.Plat);
-            }
-            DerniersRepasAffiches = repas.ToList();
-        }
-
-        public List<Repas> DerniersRepasAffiches { get; set; }
     }
 }
